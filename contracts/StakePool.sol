@@ -187,7 +187,6 @@ contract StakePool is Ownable {
         require(userInfo.amount >= amount, "Pool: nothing to withdraw");
 
         _updatePool();
-
         _sendReward(msg.sender);
 
         userInfo.amount -= amount;
