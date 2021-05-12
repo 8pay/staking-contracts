@@ -203,6 +203,11 @@ contract StakePool is Ownable {
      * @dev Sends all the accrued reward to user's wallet.
      */
     function claimReward() external {
+        UserInfo storage userInfo = usersInfo[msg.sender];
+
+        require(userInfo.amount > 0, "Pool: nothing to claim");
+
+        _updatePool();
         _sendReward(msg.sender);
     }
 
@@ -267,16 +272,11 @@ contract StakePool is Ownable {
      * @dev Internal function to send all the accrued reward to user's wallet.
      */
     function _sendReward(address user) internal {
-        UserInfo storage userInfo = usersInfo[user];
-
-        require(userInfo.amount > 0, "Pool: nothing to claim");
-
-        _updatePool();
-
         uint256 pendingReward = getPendingReward(user);
 
         rewardTreasury.sendReward(user, pendingReward);
 
+        UserInfo storage userInfo = usersInfo[user];
         userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
 
         emit RewardClaim(user, pendingReward);
