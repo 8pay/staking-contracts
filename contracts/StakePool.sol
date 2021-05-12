@@ -190,11 +190,11 @@ contract StakePool is Ownable {
 
         _sendReward(msg.sender);
 
-        stakeToken.safeTransfer(msg.sender, amount);
-
         userInfo.amount -= amount;
         userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
         totalStakedTokens -= amount;
+
+        stakeToken.safeTransfer(msg.sender, amount);
 
         emit Withdraw(msg.sender, amount);
     }
@@ -221,12 +221,14 @@ contract StakePool is Ownable {
 
         require(userInfo.amount > 0, "Pool: nothing to withdraw");
 
-        stakeToken.safeTransfer(msg.sender, userInfo.amount);
-
-        emit EmergencyWithdraw(msg.sender, userInfo.amount);
+        uint256 amount = userInfo.amount;
 
         userInfo.amount = 0;
         userInfo.rewardDebt = 0;
+
+        stakeToken.safeTransfer(msg.sender, amount);
+
+        emit EmergencyWithdraw(msg.sender, amount);
     }
 
     /**
@@ -274,10 +276,10 @@ contract StakePool is Ownable {
     function _sendReward(address user) internal {
         uint256 pendingReward = getPendingReward(user);
 
-        rewardTreasury.sendReward(user, pendingReward);
-
         UserInfo storage userInfo = usersInfo[user];
         userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
+
+        rewardTreasury.sendReward(user, pendingReward);
 
         emit RewardClaim(user, pendingReward);
     }
