@@ -165,11 +165,11 @@ contract StakePool is Ownable {
             _sendReward(msg.sender);
         }
 
-        stakeToken.safeTransferFrom(msg.sender, address(this), amount);
-
         userInfo.amount += amount;
         userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
         totalStakedTokens += amount;
+
+        stakeToken.safeTransferFrom(msg.sender, address(this), amount);
 
         emit Deposit(msg.sender, amount);
     }
