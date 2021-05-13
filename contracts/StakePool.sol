@@ -265,7 +265,7 @@ contract StakePool is Ownable {
         uint256 elapsedBlocks = lastProfitableBlock - lastRewardBlock;
         uint256 reward = rewardPerBlock * elapsedBlocks;
 
-        accRewardPerShare = accRewardPerShare + reward * 1e12 / totalStakedTokens;
+        accRewardPerShare += reward * 1e12 / totalStakedTokens;
         lastRewardBlock = lastProfitableBlock;
     }
 
