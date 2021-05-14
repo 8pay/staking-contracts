@@ -23,17 +23,9 @@
     "array-bracket-newline": ["warn", "consistent"],
     "array-bracket-spacing": ["warn", "never"],
     "array-element-newline": ["warn", "consistent"],
-    "camelcase": ["error", {
-      "properties": "always"
-    }],
-    "comma-spacing": ["warn", {
-      "before": false,
-      "after": true
-    }],
-    "dot-notation": ["warn", {
-      "allowKeywords": true,
-      "allowPattern": ""
-    }],
+    "camelcase": ["error", { "properties": "always" }],
+    "comma-spacing": ["warn", { "before": false, "after": true }],
+    "dot-notation": ["warn", { "allowKeywords": true, "allowPattern": ""}],
     "eol-last": ["warn", "always"],
     "eqeqeq": ["error", "smart"],
     "indent": ["error", 2],
@@ -42,12 +34,8 @@
     "no-dupe-args": "error",
     "no-dupe-keys": "error",
     "no-mixed-spaces-and-tabs": ["warn", "smart-tabs"],
-    "no-redeclare": ["error", {
-      "builtinGlobals": true
-    }],
-    "no-trailing-spaces": ["warn", {
-      "skipBlankLines": false
-    }],
+    "no-redeclare": ["error", { "builtinGlobals": true }],
+    "no-trailing-spaces": ["warn", { "skipBlankLines": false }],
     "no-undef": "error",
     "no-use-before-define": "off",
     "no-var": "error",
