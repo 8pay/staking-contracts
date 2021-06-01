@@ -33,14 +33,18 @@ module.exports = {
   },
   namedAccounts: {
     owner: {
-      default: 0
+      default: 0,
+      mainnet: '0xD8BEC82Dd5C0FE69f012de6660C4a44d63b786BD',
+      testnet: '0xD8BEC82Dd5C0FE69f012de6660C4a44d63b786BD'
     },
     eightPayToken: {
       default: 1,
+      mainnet: '0xFeea0bDd3D07eb6FE305938878C0caDBFa169042',
       testnet: '0xbcfee3c6de134d2db1fa7341615cab8ab082196e'
     },
     lpToken: {
       default: 2,
+      mainnet: '0x2992bed56A519670eFa04f904801e20C322670Db',
       testnet: '0x6073fd5461e09fc874a0880daf7e174d25228892'
     }
   },
