@@ -1,6 +1,7 @@
 require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-truffle5');
 require('@nomiclabs/hardhat-web3');
+require('@nomiclabs/hardhat-etherscan');
 require('hardhat-deploy');
 require('hardhat-contract-sizer');
 require('hardhat-abi-exporter');
@@ -42,5 +43,8 @@ module.exports = {
       default: 2,
       testnet: '0x6073fd5461e09fc874a0880daf7e174d25228892'
     }
+  },
+  etherscan: {
+    apiKey: process.env.BSCSCAN_KEY
   }
 };
