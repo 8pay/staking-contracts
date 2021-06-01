@@ -224,6 +224,7 @@ contract StakePool is Ownable {
 
         userInfo.amount = 0;
         userInfo.rewardDebt = 0;
+        totalStakedTokens -= amount;
 
         stakeToken.safeTransfer(msg.sender, amount);
 
