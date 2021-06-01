@@ -185,7 +185,7 @@ contract StakePool is Ownable {
 
         UserInfo storage userInfo = usersInfo[msg.sender];
 
-        require(userInfo.amount >= amount, "Pool: nothing to withdraw");
+        require(userInfo.amount >= amount, "Pool: not enough staked tokens");
 
         _updatePool();
         _sendReward(msg.sender);
@@ -205,7 +205,7 @@ contract StakePool is Ownable {
     function claimReward() external {
         UserInfo storage userInfo = usersInfo[msg.sender];
 
-        require(userInfo.amount > 0, "Pool: nothing to claim");
+        require(userInfo.amount > 0, "Pool: no staked token");
 
         _updatePool();
         _sendReward(msg.sender);

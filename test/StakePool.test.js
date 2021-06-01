@@ -80,7 +80,7 @@ contract('StakePool', accounts => {
     it('reverts when withdrawing before deposit', async () => {
       await expectRevert(
         this.pool.withdraw('1000', { from: bob }),
-        'Pool: nothing to withdraw'
+        'Pool: not enough staked tokens'
       );
     });
 
@@ -94,7 +94,7 @@ contract('StakePool', accounts => {
     it('reverts when claiming reward before deposit', async () => {
       await expectRevert(
         this.pool.claimReward({ from: bob }),
-        'Pool: nothing to claim'
+        'Pool: no staked token'
       );
     });
 
