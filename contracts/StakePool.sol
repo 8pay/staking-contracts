@@ -9,7 +9,7 @@ import { RewardTreasury } from "./RewardTreasury.sol";
 /**
  * @dev The StakePool contract allows users to stake tokens in exchange for rewards.
  * Rewards can be distributed in any token, be it the same token that is being staked
- * or any other one.
+ * or another one.
  *
  * A fixed number of reward tokens is distributed every block.
  * This amount can be updated anytime by the contract owner and the update will
@@ -18,15 +18,14 @@ import { RewardTreasury } from "./RewardTreasury.sol";
  * The amount of reward entitled to each user is calculated based on its
  * weight in the pool.
  *
- * Reward distribution starts at specific blocks.
- * Before the start block, users will be able to {deposit} tokens.
-
- * To receive all the accrued rewards to their wallet, users can call the {claimReward} function.
+ * The pool opens at a specific start block.
+ * After the start block is reached, users will be able to {deposit} stake tokens.
+ * To receive all the accrued rewards to their wallet, they can call the {claimReward} function.
  *
- * After the end block is reached, no more rewards will be distributed and deposit will be disabled.
+ * When the end block is reached, no more rewards will be distributed and deposits will be disabled.
  * Staked tokens are still withdrawable through the {widthdraw} function and pending reward can still be claimed.
  *
- * Every time tokens are deposited or withdrawn, all the pending rewards will automatically be sent to user's wallet.
+ * Every time tokens are deposited or withdrawn, all the pending rewards are automatically sent to user's wallet.
  */
 contract StakePool is Ownable {
     using SafeERC20 for IERC20;
