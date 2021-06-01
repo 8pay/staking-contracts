@@ -277,11 +277,13 @@ contract StakePool is Ownable {
     function _sendReward(address user) internal {
         uint256 pendingReward = getPendingReward(user);
 
-        UserInfo storage userInfo = usersInfo[user];
-        userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
+        if (pendingReward > 0) {
+            UserInfo storage userInfo = usersInfo[user];
+            userInfo.rewardDebt = userInfo.amount * accRewardPerShare / 1e12;
 
-        rewardTreasury.sendReward(user, pendingReward);
+            rewardTreasury.sendReward(user, pendingReward);
 
-        emit RewardClaim(user, pendingReward);
+            emit RewardClaim(user, pendingReward);
+        }
     }
 }
