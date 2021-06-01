@@ -274,6 +274,9 @@ contract StakePool is Ownable {
 
     /**
      * @dev Internal function to send all the accrued reward to user's wallet.
+     *
+     * [WARNING]
+     * The pool must be updated with {_updatePool} before calling this function.
      */
     function _sendReward(address user) internal {
         uint256 pendingReward = getPendingReward(user);
