@@ -155,6 +155,7 @@ contract StakePool is Ownable {
      */
     function deposit(uint256 amount) external {
         require(amount > 0, "Pool: deposit amount is zero");
+        require(block.number >= startBlock, "Pool: pool is not open yet");
         require(block.number <= endBlock, "Pool: pool is already closed");
 
         UserInfo storage userInfo = usersInfo[msg.sender];
