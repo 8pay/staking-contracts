@@ -236,12 +236,14 @@ contract StakePool is Ownable {
      */
     function getPendingReward(address user) public view returns (uint256) {
         UserInfo storage userInfo = usersInfo[user];
+
         uint256 lastProfitableBlock = block.number > endBlock ? endBlock : block.number;
         uint256 currentAccRewardPerShare = accRewardPerShare;
 
         if (lastProfitableBlock > lastRewardBlock && totalStakedTokens != 0) {
             uint256 elapsedBlocks = lastProfitableBlock - lastRewardBlock;
             uint256 reward = rewardPerBlock * elapsedBlocks;
+
             currentAccRewardPerShare = accRewardPerShare + reward * 1e12 / totalStakedTokens;
         }
 
