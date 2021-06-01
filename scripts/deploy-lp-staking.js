@@ -1,7 +1,7 @@
 const { ethers, getNamedAccounts } = require('hardhat');
 
 async function main () {
-  const { eightPayToken, lpToken } = await getNamedAccounts();
+  const { owner, eightPayToken, lpToken } = await getNamedAccounts();
 
   const START_BLOCK = 120;
   const END_BLOCK = 220;
@@ -16,6 +16,8 @@ async function main () {
     END_BLOCK,
     REWARD_PER_BLOCK
   );
+
+  await stakePool.transferOwnership(owner);
 
   console.log(`StakePool: ${stakePool.address}`);
 }

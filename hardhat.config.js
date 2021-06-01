@@ -31,6 +31,9 @@ module.exports = {
     }
   },
   namedAccounts: {
+    owner: {
+      default: 0
+    },
     eightPayToken: {
       default: 1,
       testnet: '0xbcfee3c6de134d2db1fa7341615cab8ab082196e'
