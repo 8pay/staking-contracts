@@ -3,9 +3,9 @@ const { ethers, getNamedAccounts } = require('hardhat');
 async function main () {
   const { owner, eightPayToken, lpToken } = await getNamedAccounts();
 
-  const START_BLOCK = 120;
-  const END_BLOCK = 220;
-  const REWARD_PER_BLOCK = 2000;
+  const START_BLOCK = 7924000;
+  const END_BLOCK = 8788000;
+  const REWARD_PER_BLOCK = ethers.utils.parseEther('1');
 
   const StakePool = await ethers.getContractFactory('StakePool');
 
