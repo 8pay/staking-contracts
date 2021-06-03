@@ -11,7 +11,9 @@ contract('StakePool', accounts => {
     this.stakeToken = await MockToken.new('Stake Token', 'STK', '1000000000', { from: owner });
     this.rewardToken = await MockToken.new('Reward Token', 'RWD', '1000000000', { from: owner });
 
-    this.startBlock = await time.latestBlock();
+    const latestBlock = await time.latestBlock();
+
+    this.startBlock = latestBlock.add(new BN('50'));
     this.endBlock = this.startBlock.add(new BN('100'));
 
     this.pool = await StakePool.new(
@@ -58,175 +60,181 @@ contract('StakePool', accounts => {
       );
     });
 
-    it('should deposit', async () => {
-      const amount = new BN('1000');
-      await this.stakeToken.transfer(bob, amount, { from: owner });
-      await this.stakeToken.approve(this.pool.address, amount, { from: bob });
-      const result = await this.pool.deposit(amount, { from: bob });
-      expectEvent(result, 'Deposit', { user: bob, amount: amount });
-      const userInfo = await this.pool.usersInfo(bob);
-      expect(userInfo.amount).to.be.bignumber.equal(amount);
-      const totalStakedTokens = await this.pool.totalStakedTokens();
-      expect(totalStakedTokens).to.be.bignumber.equal(amount);
-    });
-
-    it('reverts when depositing a zero amount', async () => {
-      await expectRevert(
-        this.pool.deposit('0', { from: bob }),
-        'Pool: deposit amount is zero'
-      );
-    });
-
-    it('reverts when withdrawing before deposit', async () => {
-      await expectRevert(
-        this.pool.withdraw('1000', { from: bob }),
-        'Pool: not enough staked tokens'
-      );
-    });
-
-    it('reverts when performing an emergency withdraw before deposit', async () => {
-      await expectRevert(
-        this.pool.emergencyWithdraw({ from: bob }),
-        'Pool: nothing to withdraw'
-      );
-    });
-
-    it('reverts when claiming reward before deposit', async () => {
-      await expectRevert(
-        this.pool.claimReward({ from: bob }),
-        'Pool: no staked token'
-      );
-    });
-
-    describe('after deposit', () => {
+    describe('after startBlock', () => {
       beforeEach(async () => {
-        this.amount = new BN('1000');
-        await this.stakeToken.transfer(bob, this.amount, { from: owner });
-        await this.stakeToken.approve(this.pool.address, this.amount, { from: bob });
-        const result = await this.pool.deposit(this.amount, { from: bob });
-        this.depositBlock = new BN(result.receipt.blockNumber);
-
-        const latestBlock = await time.latestBlock();
-        await time.advanceBlockTo(latestBlock.add(new BN('20')));
+        await time.advanceBlockTo(this.startBlock);
       });
 
-      it('should get pending reward', async () => {
-        const latestBlock = await time.latestBlock();
-        const elapsedBlocks = latestBlock.sub(this.depositBlock);
-        const expectedReward = elapsedBlocks.mul(rewardPerBlock);
-        const actualReward = await this.pool.getPendingReward(bob);
-        expect(actualReward).to.be.bignumber.equal(expectedReward);
-      });
-
-      it('should claim pending reward', async () => {
-        const result = await this.pool.claimReward({ from: bob });
-        const claimBlock = new BN(result.receipt.blockNumber);
-        const elapsedBlocks = claimBlock.sub(this.depositBlock);
-        const expectedReward = elapsedBlocks.mul(rewardPerBlock);
-        const actualReward = await this.rewardToken.balanceOf(bob);
-        expect(actualReward).to.be.bignumber.equal(expectedReward);
-        expectEvent(result, 'RewardClaim', { user: bob, amount: expectedReward });
-      });
-
-      it('should deposit more tokens and automatically claim pending reward', async () => {
-        const newDepositAmount = new BN('500');
-        await this.stakeToken.transfer(bob, newDepositAmount, { from: owner });
-        await this.stakeToken.approve(this.pool.address, newDepositAmount, { from: bob });
-        const result = await this.pool.deposit(newDepositAmount, { from: bob });
+      it('should deposit', async () => {
+        const amount = new BN('1000');
+        await this.stakeToken.transfer(bob, amount, { from: owner });
+        await this.stakeToken.approve(this.pool.address, amount, { from: bob });
+        const result = await this.pool.deposit(amount, { from: bob });
+        expectEvent(result, 'Deposit', { user: bob, amount: amount });
         const userInfo = await this.pool.usersInfo(bob);
-        expect(userInfo.amount).to.be.bignumber.equal(this.amount.add(newDepositAmount));
+        expect(userInfo.amount).to.be.bignumber.equal(amount);
         const totalStakedTokens = await this.pool.totalStakedTokens();
-        expect(totalStakedTokens).to.be.bignumber.equal(this.amount.add(newDepositAmount));
-        const claimBlock = new BN(result.receipt.blockNumber);
-        const elapsedBlocks = claimBlock.sub(this.depositBlock);
-        const expectedReward = elapsedBlocks.mul(rewardPerBlock);
-        const actualReward = await this.rewardToken.balanceOf(bob);
-        expect(actualReward).to.be.bignumber.equal(expectedReward);
+        expect(totalStakedTokens).to.be.bignumber.equal(amount);
       });
 
-      it('should withdraw tokens and automatically claim pending reward', async () => {
-        const result = await this.pool.withdraw(this.amount, { from: bob });
-        expectEvent(result, 'Withdraw', { user: bob, amount: this.amount });
-        const userInfo = await this.pool.usersInfo(bob);
-        const balance = await this.stakeToken.balanceOf(bob);
-        expect(balance).to.be.bignumber.equal(this.amount);
-        expect(userInfo.amount).to.be.bignumber.equal('0');
-        const totalStakedTokens = await this.pool.totalStakedTokens();
-        expect(totalStakedTokens).to.be.bignumber.equal('0');
-        const claimBlock = new BN(result.receipt.blockNumber);
-        const elapsedBlocks = claimBlock.sub(this.depositBlock);
-        const expectedReward = elapsedBlocks.mul(rewardPerBlock);
-        const actualReward = await this.rewardToken.balanceOf(bob);
-        expect(actualReward).to.be.bignumber.equal(expectedReward);
-      });
-
-      it('reverts when withdrawing a zero amount', async () => {
+      it('reverts when depositing a zero amount', async () => {
         await expectRevert(
-          this.pool.withdraw('0', { from: bob }),
-          'Pool: withdraw amount is zero'
+          this.pool.deposit('0', { from: bob }),
+          'Pool: deposit amount is zero'
         );
       });
 
-      it('should peform an emergency withdraw', async () => {
-        const result = await this.pool.emergencyWithdraw({ from: bob });
-        const balance = await this.stakeToken.balanceOf(bob);
-        expect(balance).to.be.bignumber.equal(this.amount);
-        const userInfo = await this.pool.usersInfo(bob);
-        expect(userInfo.amount).to.be.bignumber.equal('0');
-        const pendingReward = await this.pool.getPendingReward(bob);
-        expect(pendingReward).to.be.bignumber.equal('0');
-        const sentReward = await this.rewardToken.balanceOf(bob);
-        expect(sentReward).to.be.bignumber.equal('0');
-        expectEvent(result, 'EmergencyWithdraw', { user: bob, amount: this.amount });
+      it('reverts when withdrawing before deposit', async () => {
+        await expectRevert(
+          this.pool.withdraw('1000', { from: bob }),
+          'Pool: not enough staked tokens'
+        );
       });
 
-      it('should receive the right amount of reward when the reward per block is updated', async () => {
-        const newRewardPerBlock = new BN('5000');
-        await this.pool.setRewardPerBlock(newRewardPerBlock, { from: owner });
-        const currentReward = await this.pool.getPendingReward(bob);
-        await time.advanceBlock();
-        const expectedReward = currentReward.add(newRewardPerBlock);
-        const actualReward = await this.pool.getPendingReward(bob);
-        expect(actualReward).to.be.bignumber.equal(expectedReward);
+      it('reverts when performing an emergency withdraw before deposit', async () => {
+        await expectRevert(
+          this.pool.emergencyWithdraw({ from: bob }),
+          'Pool: nothing to withdraw'
+        );
       });
 
-      describe('after endBlock', () => {
+      it('reverts when claiming reward before deposit', async () => {
+        await expectRevert(
+          this.pool.claimReward({ from: bob }),
+          'Pool: no staked token'
+        );
+      });
+
+      describe('after deposit', () => {
         beforeEach(async () => {
-          await time.advanceBlockTo(this.endBlock.add(new BN('1')));
+          this.amount = new BN('1000');
+          await this.stakeToken.transfer(bob, this.amount, { from: owner });
+          await this.stakeToken.approve(this.pool.address, this.amount, { from: bob });
+          const result = await this.pool.deposit(this.amount, { from: bob });
+          this.depositBlock = new BN(result.receipt.blockNumber);
+
+          const latestBlock = await time.latestBlock();
+          await time.advanceBlockTo(latestBlock.add(new BN('20')));
         });
 
-        it('should stop distributing rewards', async () => {
-          const initialReward = await this.pool.getPendingReward(bob);
-          await time.advanceBlock();
-          const finalReward = await this.pool.getPendingReward(bob);
-          expect(finalReward).to.be.bignumber.equal(initialReward);
+        it('should get pending reward', async () => {
+          const latestBlock = await time.latestBlock();
+          const elapsedBlocks = latestBlock.sub(this.depositBlock);
+          const expectedReward = elapsedBlocks.mul(rewardPerBlock);
+          const actualReward = await this.pool.getPendingReward(bob);
+          expect(actualReward).to.be.bignumber.equal(expectedReward);
         });
 
-        it('reverts when depositing', async () => {
+        it('should claim pending reward', async () => {
+          const result = await this.pool.claimReward({ from: bob });
+          const claimBlock = new BN(result.receipt.blockNumber);
+          const elapsedBlocks = claimBlock.sub(this.depositBlock);
+          const expectedReward = elapsedBlocks.mul(rewardPerBlock);
+          const actualReward = await this.rewardToken.balanceOf(bob);
+          expect(actualReward).to.be.bignumber.equal(expectedReward);
+          expectEvent(result, 'RewardClaim', { user: bob, amount: expectedReward });
+        });
+
+        it('should deposit more tokens and automatically claim pending reward', async () => {
+          const newDepositAmount = new BN('500');
+          await this.stakeToken.transfer(bob, newDepositAmount, { from: owner });
+          await this.stakeToken.approve(this.pool.address, newDepositAmount, { from: bob });
+          const result = await this.pool.deposit(newDepositAmount, { from: bob });
+          const userInfo = await this.pool.usersInfo(bob);
+          expect(userInfo.amount).to.be.bignumber.equal(this.amount.add(newDepositAmount));
+          const totalStakedTokens = await this.pool.totalStakedTokens();
+          expect(totalStakedTokens).to.be.bignumber.equal(this.amount.add(newDepositAmount));
+          const claimBlock = new BN(result.receipt.blockNumber);
+          const elapsedBlocks = claimBlock.sub(this.depositBlock);
+          const expectedReward = elapsedBlocks.mul(rewardPerBlock);
+          const actualReward = await this.rewardToken.balanceOf(bob);
+          expect(actualReward).to.be.bignumber.equal(expectedReward);
+        });
+
+        it('should withdraw tokens and automatically claim pending reward', async () => {
+          const result = await this.pool.withdraw(this.amount, { from: bob });
+          expectEvent(result, 'Withdraw', { user: bob, amount: this.amount });
+          const userInfo = await this.pool.usersInfo(bob);
+          const balance = await this.stakeToken.balanceOf(bob);
+          expect(balance).to.be.bignumber.equal(this.amount);
+          expect(userInfo.amount).to.be.bignumber.equal('0');
+          const totalStakedTokens = await this.pool.totalStakedTokens();
+          expect(totalStakedTokens).to.be.bignumber.equal('0');
+          const claimBlock = new BN(result.receipt.blockNumber);
+          const elapsedBlocks = claimBlock.sub(this.depositBlock);
+          const expectedReward = elapsedBlocks.mul(rewardPerBlock);
+          const actualReward = await this.rewardToken.balanceOf(bob);
+          expect(actualReward).to.be.bignumber.equal(expectedReward);
+        });
+
+        it('reverts when withdrawing a zero amount', async () => {
           await expectRevert(
-            this.pool.deposit('1000', { from: bob }),
-            'Pool: pool is already closed'
+            this.pool.withdraw('0', { from: bob }),
+            'Pool: withdraw amount is zero'
           );
         });
 
-        it('should restart distributing rewards from the moment endBlock is postponed', async () => {
-          const initialPendingReward = await this.pool.getPendingReward(bob);
-          await time.advanceBlock();
-          const latestBlock = await time.latestBlock();
-          await this.pool.setEndBlock(latestBlock.add(new BN('20')));
-          await time.advanceBlock();
-          const finalPendingReward = await this.pool.getPendingReward(bob);
-          expect(finalPendingReward).to.be.bignumber.equal(initialPendingReward.add(rewardPerBlock));
+        it('should peform an emergency withdraw', async () => {
+          const result = await this.pool.emergencyWithdraw({ from: bob });
+          const balance = await this.stakeToken.balanceOf(bob);
+          expect(balance).to.be.bignumber.equal(this.amount);
+          const userInfo = await this.pool.usersInfo(bob);
+          expect(userInfo.amount).to.be.bignumber.equal('0');
+          const pendingReward = await this.pool.getPendingReward(bob);
+          expect(pendingReward).to.be.bignumber.equal('0');
+          const sentReward = await this.rewardToken.balanceOf(bob);
+          expect(sentReward).to.be.bignumber.equal('0');
+          expectEvent(result, 'EmergencyWithdraw', { user: bob, amount: this.amount });
         });
 
-        it('should allow deposits after endBlock is postponed', async () => {
-          const amount = new BN('1000');
+        it('should receive the right amount of reward when the reward per block is updated', async () => {
+          const newRewardPerBlock = new BN('5000');
+          await this.pool.setRewardPerBlock(newRewardPerBlock, { from: owner });
+          const currentReward = await this.pool.getPendingReward(bob);
           await time.advanceBlock();
-          const latestBlock = await time.latestBlock();
-          await this.pool.setEndBlock(latestBlock.add(new BN('20')));
-          await this.stakeToken.transfer(bob, amount, { from: owner });
-          await this.stakeToken.approve(this.pool.address, amount, { from: bob });
-          await this.pool.deposit(amount, { from: bob });
+          const expectedReward = currentReward.add(newRewardPerBlock);
+          const actualReward = await this.pool.getPendingReward(bob);
+          expect(actualReward).to.be.bignumber.equal(expectedReward);
+        });
+
+        describe('after endBlock', () => {
+          beforeEach(async () => {
+            await time.advanceBlockTo(this.endBlock.add(new BN('1')));
+          });
+
+          it('should stop distributing rewards', async () => {
+            const initialReward = await this.pool.getPendingReward(bob);
+            await time.advanceBlock();
+            const finalReward = await this.pool.getPendingReward(bob);
+            expect(finalReward).to.be.bignumber.equal(initialReward);
+          });
+
+          it('reverts when depositing', async () => {
+            await expectRevert(
+              this.pool.deposit('1000', { from: bob }),
+              'Pool: pool is already closed'
+            );
+          });
+
+          it('should restart distributing rewards from the moment endBlock is postponed', async () => {
+            const initialPendingReward = await this.pool.getPendingReward(bob);
+            await time.advanceBlock();
+            const latestBlock = await time.latestBlock();
+            await this.pool.setEndBlock(latestBlock.add(new BN('20')));
+            await time.advanceBlock();
+            const finalPendingReward = await this.pool.getPendingReward(bob);
+            expect(finalPendingReward).to.be.bignumber.equal(initialPendingReward.add(rewardPerBlock));
+          });
+
+          it('should allow deposits after endBlock is postponed', async () => {
+            const amount = new BN('1000');
+            await time.advanceBlock();
+            const latestBlock = await time.latestBlock();
+            await this.pool.setEndBlock(latestBlock.add(new BN('20')));
+            await this.stakeToken.transfer(bob, amount, { from: owner });
+            await this.stakeToken.approve(this.pool.address, amount, { from: bob });
+            await this.pool.deposit(amount, { from: bob });
+          });
         });
       });
     });
@@ -287,6 +295,10 @@ contract('StakePool', accounts => {
   });
 
   describe('reward distribution', () => {
+    beforeEach(async () => {
+      await time.advanceBlockTo(this.startBlock);
+    });
+
     it('should proportionally distribute rewards for each block', async () => {
       const bobAmount = new BN('1000');
       const aliceAmount = new BN('3000');
