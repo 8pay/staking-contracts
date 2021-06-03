@@ -218,6 +218,16 @@ contract('StakePool', accounts => {
           const finalPendingReward = await this.pool.getPendingReward(bob);
           expect(finalPendingReward).to.be.bignumber.equal(initialPendingReward.add(rewardPerBlock));
         });
+
+        it('should allow deposits after endBlock is postponed', async () => {
+          const amount = new BN('1000');
+          await time.advanceBlock();
+          const latestBlock = await time.latestBlock();
+          await this.pool.setEndBlock(latestBlock.add(new BN('20')));
+          await this.stakeToken.transfer(bob, amount, { from: owner });
+          await this.stakeToken.approve(this.pool.address, amount, { from: bob });
+          await this.pool.deposit(amount, { from: bob });
+        });
       });
     });
   });
