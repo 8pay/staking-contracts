@@ -60,6 +60,15 @@ contract('StakePool', accounts => {
       );
     });
 
+    describe('before startBlock', () => {
+      it('reverts when depositing', async () => {
+        await expectRevert(
+          this.pool.deposit('1000', { from: bob }),
+          'Pool: pool is not open yet'
+        );
+      });
+    });
+
     describe('after startBlock', () => {
       beforeEach(async () => {
         await time.advanceBlockTo(this.startBlock);
