@@ -46,6 +46,11 @@ module.exports = {
       default: 2,
       mainnet: '0x2992bed56A519670eFa04f904801e20C322670Db',
       testnet: '0x6073fd5461e09fc874a0880daf7e174d25228892'
+    },
+    busdToken: {
+      default: 3,
+      mainnet: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56',
+      testnet: ''
     }
   },
   etherscan: {
